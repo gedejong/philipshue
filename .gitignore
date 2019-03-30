@@ -1,3 +1,6 @@
 /target
 /Cargo.lock
 .bridgeuser
+.idea
+.vscode
+philipshue.iml

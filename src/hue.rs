@@ -1,6 +1,6 @@
 use serde::de::{Deserialize, Deserializer};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 /// The state of the light with similar structure to `LightCommand`
 pub struct LightState {
     /// Whether the light is on
@@ -33,7 +33,7 @@ pub struct LightState {
     pub reachable: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 /// The state of the light. Same as `LightState` except there's no `reachable` field.
 pub struct LightStateChange {
     /// Whether the light is on
@@ -62,24 +62,43 @@ pub struct LightStateChange {
     /// If "colorloop", the light will cycle hues
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effect: Option<String>,
+
+    /// The duration of the transition from the light’s current state to the new state.
+    ///
+    /// This is given as a multiple of 100ms and defaults to 4 (400ms).
+    /// For example, setting transitiontime 10 will make the transition last 1 second.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transitiontime: Option<u16>,
+
     /// The current colour mode either: "hs" for hue and saturation, "xy" for x and y coordinates in colour space, or "ct" for colour temperature
     #[serde(skip_serializing_if = "Option::is_none")]
     pub colormode: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 /// Details about a specific light
 pub struct Light {
+    /// The state of the light (See `LightState` for more)
+    pub state: LightState,
+
+    /// A fixed name describing the type of light e.g. “Extended color light”.
+    #[serde(rename = "type")]
+    pub tpe: String,
+
     /// The unique name given to the light
     pub name: String,
+
     /// The hardware model of the light
     pub modelid: String,
-    /// The version of the software running on the light
-    pub swversion: String,
+
     /// Unique ID of the device
     pub uniqueid: String,
-    /// The state of the light (See `LightState` for more)
-    pub state: LightState
+
+    /// Manufacturer name
+    pub manufacturername: String,
+
+    /// The version of the software running on the light
+    pub swversion: String,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -113,6 +132,14 @@ pub struct LightCommand {
     /// If "colorloop", the light will cycle hues
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effect: Option<String>,
+
+    /// The duration of the transition from the light’s current state to the new state.
+    ///
+    /// This is given as a multiple of 100ms and defaults to 4 (400ms).
+    /// For example, setting transitiontime 10 will make the transition last 1 second.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transitiontime: Option<u16>,
+
     /// Has to be a value between -254 and 254. Increments or decrements the value of the brightness.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bri_inc: Option<i16>,
@@ -166,6 +193,11 @@ impl LightCommand {
     /// Sets the effect mode to set the light to
     pub fn with_effect(self, a: String) -> Self {
         LightCommand { effect: Some(a), ..self }
+    }
+
+    /// Sets the transition time in decaseconds
+    pub fn with_transitiontime(self, t: u16) -> Self {
+        LightCommand { transitiontime: Some(t), ..self }
     }
     /// Sets the brightness increment value
     pub fn with_bri_inc(self, b: i16) -> Self {

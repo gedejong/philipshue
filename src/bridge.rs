@@ -214,9 +214,9 @@ impl Bridge {
     /// Creates a group and returns the ID of the group
     pub fn create_group(&self, name: String, lights: Vec<usize>, group_type: GroupType, room_class: Option<RoomClass>) -> Result<usize> {
         let g = Group {
-            name: name,
-            lights: lights,
-            group_type: group_type,
+            name,
+            lights,
+            group_type,
             class: room_class,
             recycle: None,
             state: None,
